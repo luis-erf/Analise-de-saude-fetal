@@ -1,89 +1,76 @@
-# Executando o repositório localmente (sem Google Colab)
+# Análise de Saúde Fetal — Reproduzir exclusivamente no Google Colab a partir do repositório baixado
 
-Este documento explica como preparar um ambiente local para executar os notebooks presentes neste repositório, evitando o uso do Google Colab.
+Este README descreve o fluxo específico para reproduzir os notebooks Jupyter no Google Colab usando os arquivos obtidos diretamente do repositório GitHub (baixando/clonando o repositório no seu computador) e, em seguida, *fazendo upload dos notebooks e dos arquivos de dataset para o Colab*. Todas as instruções abaixo são pensadas apenas para execução no Colab.
 
-## 1) Escolha do ambiente
-Opções recomendadas:
-- Usar Conda / Miniconda (recomendado para ciência de dados)
-- Ou usar um virtualenv / venv com pip
+---
 
-### A) Criar ambiente Conda (recomendado)
-1. Instale Miniconda/Conda se ainda não tiver: https://docs.conda.io/en/latest/miniconda.html
-2. No diretório do repositório, execute:
-   ```
-   conda env create -f environment.yml
-   conda activate fetal_health_env
-   ```
-3. Registre o kernel (opcional, para usar nos notebooks):
-   ```
-   python -m ipykernel install --user --name fetal_health_env --display-name "Python (fetal_health_env)"
-   ```
+## Fluxo geral resumido
+1. Baixe o repositório do GitHub no seu computador.
+2. No Google Colab, faça upload do notebook (.ipynb) que deseja executar (a partir dos arquivos que você baixou).
+3. No Colab, faça upload dos arquivos de dataset correspondentes (os arquivos do repositório que você baixou).
+4. Execute as células do notebook no Colab na ordem indicada no próprio notebook.
 
-### B) Usar virtualenv / pip
-1. Crie e ative o virtualenv:
-   ```
-   python3 -m venv .venv
-   source .venv/bin/activate    # macOS / Linux
-   .venv\Scripts\activate       # Windows (PowerShell)
-   ```
-2. Instale as dependências:
-   ```
-   pip install --upgrade pip
-   pip install -r requirements.txt
-   ```
-3. Registre o kernel (opcional):
-   ```
-   python -m ipykernel install --user --name fetal_health_local --display-name "Python (fetal_health_local)"
-   ```
+---
 
-## 2) Ajustes nos notebooks (substituir trechos Colab)
-Os notebooks do repositório utilizam trechos específicos do Colab (ex.: `from google.colab import files`, `files.upload()` e células com `!pip install ...`). Para execução local, faça as alterações abaixo:
+## 1) Baixar o repositório (no seu computador)
+Opções:
 
-- Remova ou comente qualquer célula com `!pip install ...` (já estão instaladas pelo environment/requirements).
-- Substitua blocos que usam `files.upload()` por carregamento direto com `pd.read_csv()` apontando para o caminho local do arquivo.
+- Clonar via git:
+```bash
+git clone https://github.com/luis-erf/Analise-de-saude-fetal.git
+```
 
-Exemplo de alteração:
-Antes (Colab):
+- Ou baixar ZIP:
+  - Acesse a página do repositório e clique em "Code" → "Download ZIP".
+  - Extraia o ZIP em uma pasta local.
+
+Após baixar, você terá a estrutura com os notebooks e arquivos de dataset e pastas auxiliares.
+
+---
+
+## 2) Abrir notebooks no Google Colab (a partir dos arquivos baixados)
+
+Opções para abrir um notebook do seu computador no Colab:
+
+- No Colab: File > Open notebook > Upload → selecione o arquivo `.ipynb` que você baixou do repositório.
+
+- Alternativa via upload dentro do notebook (útil se quiser programaticamente enviar vários arquivos):
 ```python
 from google.colab import files
-uploaded = files.upload()
-for filename in uploaded.keys():
-    os.rename(filename, 'fetal_health_train_multi.csv')
-df_train = pd.read_csv('fetal_health_train_multi.csv')
+uploaded = files.upload()  # aparecerá um seletor para escolher arquivos .ipynb, .csv etc.
 ```
+Observação: Para notebooks é mais simples usar "Open notebook > Upload" do menu, porque o Colab abre o .ipynb automaticamente.
 
-Depois (local):
+---
+
+## 3) Enviar os arquivos de dataset para o Colab (a partir dos baixados)
+
+- Pelo diálogo de upload (preferido para poucos arquivos):
+  - No Colab: File > Open notebook > Upload (ou usar `files.upload()` em uma célula).
+  - Selecione os arquivos de dataset (ex.: `dataset_original.csv`, `dataset_tratado.csv`) da pasta onde você extraiu o repositório.
+
+Exemplo de upload via código:
 ```python
-# Coloque o arquivo fetal_health_train_multi.csv no mesmo diretório do notebook
-import os
-import pandas as pd
-
-dataset_path = 'fetal_health_train_multi.csv'
-if not os.path.exists(dataset_path):
-    raise FileNotFoundError(f"O arquivo {dataset_path} não foi encontrado. Coloque-o na pasta do notebook.")
-df_train = pd.read_csv(dataset_path)
+from google.colab import files
+uploaded = files.upload()  # selecione dataset_original.csv (ou os arquivos que desejar)
 ```
 
-- Substitua `from google.colab import files` por importações locais/nenhuma.
-- Caso exista uso de `drive.mount(...)`, remova e coloque instruções para copiar os arquivos localmente.
 
-## 3) Executar os notebooks
-- Inicie Jupyter Lab (ou Notebook):
-  ```
-  jupyter lab
-  # ou
-  jupyter notebook
-  ```
-- Abra os notebooks (.ipynb) e selecione o kernel correspondente (ex.: "Python (fetal_health_env)").
-- Execute células sequencialmente.
+## 4) Ordem de execução recomendada dos notebooks
+(Siga esta ordem abrindo cada notebook no Colab e fazendo upload dos datasets correspondentes)
 
-## 4) Observações sobre versões
-- O arquivo `requirements.txt` e `environment.yml` trazem versões fixas para reprodutibilidade. Caso encontre conflito com seu sistema, ajuste as versões conforme necessário.
-- Se preferir que eu gere arquivos com versões mínimas (ranges) em vez de pins exatos, eu também posso gerar.
+1. 01_EDA.ipynb
+   - Upload: `dataset_original.csv` (do repositório baixado).
+   - Objetivo: inspeção e estudo das variáveis.
 
-## 5) Checklist rápido para rodar localmente
-- [ ] Criar/ativar ambiente (Conda ou venv)
-- [ ] Instalar dependências (conda env create -f environment.yml OU pip install -r requirements.txt)
-- [ ] Colocar os CSVs usados pelos notebooks na mesma pasta ou ajustar os caminhos
-- [ ] Remover/editar células Colab conforme instruído
-- [ ] Abrir Jupyter Lab / Notebook e selecionar o kernel correto
+2. 02_tratamento.ipynb
+   - Upload: `fetal_healt.csv`, que está na pasta Dataset original.
+   - Executar limpeza e engenharia de features.
+
+3. 03_modelagem.ipynb
+   - Upload: `fetal_health_test_multi.csv`, `fetal_health_train_multi.csv`, que está na pasta Dataset tratado
+
+---
+
+Autor: luis-erf  
+Data: 2026-01-30
